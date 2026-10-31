@@ -62,3 +62,21 @@ def calculate_metrics(data: pd.DataFrame) -> SalesMetrics:
         raise ValueError("Выручка слишком велика для расчёта. Проверьте quantity и unit_price.")
     order_count = int(ids.nunique())
     return SalesMetrics(revenue, order_count, revenue / order_count if order_count else 0.0)
+
+
+def daily_revenue(data: pd.DataFrame) -> pd.DataFrame:
+    """Выручка по датам продаж, по возрастанию; дни без записей не добавляются."""
+    calculate_metrics(data)  # Применяем те же правила проверки, что и для карточек.
+    if data.empty:
+        return pd.DataFrame({
+            "order_date": pd.Series(dtype="datetime64[ns]"),
+            "revenue": pd.Series(dtype="float64"),
+        })
+    rows = pd.DataFrame({
+        "order_date": pd.to_datetime(data["order_date"], format="%Y-%m-%d"),
+        "revenue": (
+            pd.to_numeric(data["quantity"]).astype(float)
+            * pd.to_numeric(data["unit_price"]).astype(float)
+        ),
+    })
+    return rows.groupby("order_date", as_index=False, sort=True)["revenue"].sum()

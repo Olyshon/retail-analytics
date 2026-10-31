@@ -1,14 +1,15 @@
 import pandas as pd
 import streamlit as st
 
-from retail_analytics.metrics import calculate_metrics
+from retail_analytics.charts import revenue_chart
+from retail_analytics.metrics import calculate_metrics, daily_revenue
 
 st.set_page_config(page_title="Retail Analytics", page_icon="📊")
 
 st.title("Retail Analytics")
 st.write(
     "Учебное приложение для анализа продаж. Загрузите CSV, чтобы проверить "
-    "его структуру, посмотреть первые строки и основные показатели."
+    "его структуру, посмотреть первые строки, основные показатели и динамику выручки."
 )
 
 REQUIRED_COLUMNS = (
@@ -38,6 +39,7 @@ if uploaded_file is not None:
         else:
             try:
                 metrics = calculate_metrics(data)
+                daily = daily_revenue(data)
             except ValueError as error:
                 st.error(str(error))
             else:
@@ -45,6 +47,9 @@ if uploaded_file is not None:
                 revenue_col.metric("Выручка", f"{metrics.revenue:,.2f}")
                 orders_col.metric("Количество заказов", metrics.order_count)
                 average_col.metric("Средний чек", f"{metrics.average_order_value:,.2f}")
+                st.subheader("Динамика выручки по дням")
+                st.plotly_chart(revenue_chart(daily), width="stretch")
+                st.caption("Показаны даты с записями о продажах. Дни без записей не добавляются.")
             st.write(f"Общее количество строк: {len(data)}")
             st.subheader("Предварительный просмотр — первые 10 строк")
             st.dataframe(data.head(10), hide_index=True)
