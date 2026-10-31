@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from retail_analytics.charts import revenue_chart
+from retail_analytics.csv_loader import load_sales_csv
 from retail_analytics.metrics import calculate_metrics, daily_revenue
 
 st.set_page_config(page_title="Retail Analytics", page_icon="📊")
@@ -22,7 +23,7 @@ uploaded_file = st.file_uploader("Загрузите CSV с продажами",
 
 if uploaded_file is not None:
     try:
-        data = pd.read_csv(uploaded_file, encoding="utf-8-sig", dtype={"order_id": "string"})
+        data = load_sales_csv(uploaded_file)
     except pd.errors.EmptyDataError:
         st.error("Файл пустой: добавьте заголовки столбцов и строки с продажами.")
     except (pd.errors.ParserError, UnicodeDecodeError, OSError, ValueError):
