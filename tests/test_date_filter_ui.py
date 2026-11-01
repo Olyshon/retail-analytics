@@ -18,6 +18,7 @@ APP_PATH = Path(__file__).resolve().parents[1] / "app.py"
 
 
 def run_app(app, payload=CSV):
+    app.session_state["source_mode"] = "Мой CSV"
     with patch("streamlit.file_uploader", return_value=BytesIO(payload)):
         app.run(timeout=30)
     assert not app.exception
@@ -45,7 +46,7 @@ def test_filter_controls_metrics_chart_and_preview():
     run_app(app)
     assert [metric.value for metric in app.metric] == ["0.00", "0", "0.00"]
     assert not app.get("plotly_chart")
-    assert "нет продаж" in app.info[0].value
+    assert any("нет продаж" in message.value for message in app.info)
     assert app.dataframe[0].value.empty
 
 

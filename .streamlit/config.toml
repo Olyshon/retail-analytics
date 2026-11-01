@@ -1,0 +1,15 @@
+[theme]
+base = "light"
+primaryColor = "#2563EB"
+backgroundColor = "#F7F8FA"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#202938"
+font = "sans serif"
+baseRadius = "0.5rem"
+borderColor = "#E2E6ED"
+showWidgetBorder = true
+headingFontSizes = ["2rem", "1.5rem", "1.125rem", "1rem", "1rem", "1rem"]
+paddingTop = "1.5rem"
+paddingBottom = "2rem"
+metricValueFontSize = "2.375rem"
+metricValueFontWeight = 600

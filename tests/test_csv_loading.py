@@ -16,7 +16,8 @@ HEADER = "order_id,order_date,product_name,quantity,unit_price\n"
 def run_upload(csv):
     streamlit = MagicMock()
     streamlit.file_uploader.return_value = BytesIO(csv.encode("utf-8-sig"))
-    def columns(count):
+    streamlit.segmented_control.return_value = "Мой CSV"
+    def columns(count, **kwargs):
         result = [MagicMock() for _ in range(count)]
         for column in result:
             column.date_input.side_effect = lambda *args, **kwargs: kwargs["value"]
@@ -24,8 +25,9 @@ def run_upload(csv):
 
     streamlit.columns.side_effect = columns
     methods = ("set_page_config", "title", "write", "caption", "file_uploader",
-               "error", "warning", "columns", "subheader", "plotly_chart", "dataframe")
-    with patch.multiple(st, **{name: getattr(streamlit, name) for name in methods}):
+               "error", "warning", "columns", "subheader", "plotly_chart", "dataframe",
+               "segmented_control", "button", "download_button", "info")
+    with patch.object(st, "session_state", {}), patch.multiple(st, **{name: getattr(streamlit, name) for name in methods}):
         namespace = runpy.run_path(str(Path(__file__).resolve().parents[1] / "app.py"))
     return streamlit, namespace
 
@@ -70,3 +72,11 @@ def test_decimal_precision_survives_csv_loading():
     ui, namespace = run_upload(HEADER + "001,2026-10-01,Coffee,1,1.00499999999999999999999999999\n")
     ui.error.assert_not_called()
     assert calculate_metrics(namespace["data"]).revenue == Decimal("1.00")
+
+
+def test_clearing_uploader_forgets_saved_file():
+    _, namespace = run_upload(HEADER + "001,2026-10-01,Coffee,1,10\n")
+    state = {"saved_upload": (b"previous file", "sales.csv"), "user_upload": None}
+    with patch.object(st, "session_state", state):
+        namespace["remember_upload"]()
+    assert state["saved_upload"] is None

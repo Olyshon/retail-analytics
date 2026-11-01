@@ -72,3 +72,18 @@ def test_horizontal_chart_preserves_order_and_exact_hover_amounts():
     assert list(chart.data[0].y) == ["Чай", "Кофе"]
     assert chart.layout.yaxis.autorange == "reversed"
     assert chart.data[0].customdata.tolist() == [["2.00"], ["1.01"]]
+
+
+def test_long_labels_are_wrapped_without_losing_names():
+    name = "Очень длинное название товара с подробным описанием и характеристиками"
+    chart = top_products_chart(top_products(sales([name], ["1.005"])))
+    assert list(chart.data[0].y) == [name]
+    assert chart.layout.yaxis.ticktext[0].replace("<br>", " ") == name
+    assert chart.layout.yaxis.automargin
+    assert chart.data[0].customdata.tolist() == [["1.01"]]
+
+
+def test_small_ranking_is_more_compact_than_ten_products():
+    small = top_products_chart(top_products(sales(["A", "B", "C"], ["1"] * 3)))
+    large = top_products_chart(top_products(sales([str(i) for i in range(10)], ["1"] * 10)))
+    assert small.layout.height < large.layout.height

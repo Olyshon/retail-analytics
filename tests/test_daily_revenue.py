@@ -56,3 +56,13 @@ def test_single_day_and_zero_revenue_have_visible_marker(sales):
     assert len(chart.data[0].x) == 1
     assert list(chart.data[0].y) == [0]
     assert "markers" in chart.data[0].mode
+    assert chart.layout.xaxis.tickmode == "array"
+    assert list(chart.layout.xaxis.ticktext) == ["01.10.2026"]
+    assert len(chart.layout.xaxis.tickvals) == 1
+    assert chart.layout.xaxis.range[0] < result["order_date"].iloc[0] < chart.layout.xaxis.range[1]
+
+
+def test_multi_day_ticks_never_use_intraday_intervals(sales):
+    chart = revenue_chart(daily_revenue(sales))
+    assert chart.layout.xaxis.dtick >= 86_400_000
+    assert chart.layout.xaxis.tickformat == "%d.%m.%Y"
