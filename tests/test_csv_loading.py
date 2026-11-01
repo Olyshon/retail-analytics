@@ -16,7 +16,13 @@ HEADER = "order_id,order_date,product_name,quantity,unit_price\n"
 def run_upload(csv):
     streamlit = MagicMock()
     streamlit.file_uploader.return_value = BytesIO(csv.encode("utf-8-sig"))
-    streamlit.columns.return_value = [MagicMock() for _ in range(3)]
+    def columns(count):
+        result = [MagicMock() for _ in range(count)]
+        for column in result:
+            column.date_input.side_effect = lambda *args, **kwargs: kwargs["value"]
+        return result
+
+    streamlit.columns.side_effect = columns
     methods = ("set_page_config", "title", "write", "caption", "file_uploader",
                "error", "warning", "columns", "subheader", "plotly_chart", "dataframe")
     with patch.multiple(st, **{name: getattr(streamlit, name) for name in methods}):

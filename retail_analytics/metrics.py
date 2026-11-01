@@ -119,3 +119,19 @@ def daily_revenue(data: pd.DataFrame) -> pd.DataFrame:
             "revenue": pd.Series(dtype=object),
         })
     return rows.groupby("order_date", as_index=False, sort=True)["revenue"].agg(_sum_money)
+
+
+def top_products(data: pd.DataFrame) -> pd.DataFrame:
+    """Не более 10 товаров: выручка убывает, при равенстве название возрастает."""
+    if "product_name" not in data.columns:
+        raise ValueError("Не хватает обязательных столбцов: product_name")
+    _, rows = _prepare_sales(data)
+    rows["product_name"] = data["product_name"]
+    if data.empty:
+        return rows[["product_name", "revenue"]].reset_index(drop=True)
+    totals = rows.groupby(
+        "product_name", as_index=False, dropna=False
+    )["revenue"].agg(_sum_money)
+    return totals.sort_values(
+        ["revenue", "product_name"], ascending=[False, True]
+    ).head(10).reset_index(drop=True)
